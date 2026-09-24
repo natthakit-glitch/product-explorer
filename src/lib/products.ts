@@ -65,6 +65,7 @@ export type Product = z.infer<typeof ProductSchema>;
 
 export type ProductList = z.infer<typeof ProductListSchema>;
 
+
 const API_BASE = "https://dummyjson.com";
 
 export const SORT_FIELDS = [
@@ -73,11 +74,29 @@ export const SORT_FIELDS = [
   "stock",
 ] as const;
 
-export type SearchQuery = {
-  q: string;
-  limit: number;
-  sortBy: (typeof SORT_FIELDS)[number];
-};
+
+// 3.1  แบบร่างสินค้า: ไม่มี id (เกิดตอนบันทึก) และไม่มี thumbnail (ฟอร์มไม่ได้กรอก)
+export const ProductDraftSchema = ProductSchema.omit({
+  id: true,
+  thumbnail: true,
+});
+
+export type ProductDraft = z.infer<typeof ProductDraftSchema>;
+
+// 2.2  เปลี่ยนจาก type ธรรมดาเป็น Schema (ลบ type SearchQuery เดิมออก)
+export const SearchQuerySchema = z.object({
+  q: z.string().trim(),
+
+  limit: z
+    .number({ error: "กรุณากรอกจำนวนรายการ" })
+    .int("จำนวนรายการต้องเป็นจำนวนเต็ม")
+    .min(1, "อย่างน้อย 1 รายการ")
+    .max(30, "ไม่เกิน 30 รายการ"),
+
+  sortBy: z.enum(SORT_FIELDS),
+});
+
+export type SearchQuery = z.infer<typeof SearchQuerySchema>;
 
 export const defaultQuery: SearchQuery = {
   q: "",
